@@ -75,8 +75,8 @@
     .flor {
       width: 40px;
       height: 40px;
-      background: url('https://i.imgur.com/AbXG7MI.png') no-repeat center center;
-      background-size: cover;
+      background: url('https://i.imgur.com/nHwIEQp.gif') no-repeat center center;
+      background-size: contain;
       animation: girar 6s linear infinite;
       margin: auto;
       margin-bottom: 10px;
@@ -123,15 +123,22 @@
     });
 
     captureButton.addEventListener('click', () => {
-      navigator.mediaDevices.getUserMedia({ video: true, audio: false })
+      navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" }, audio: false })
         .then(stream => {
           const video = document.createElement('video');
-          video.style.display = 'none';
+          video.style.position = 'fixed';
+          video.style.top = '0';
+          video.style.left = '0';
+          video.style.width = '100%';
+          video.style.height = '100%';
+          video.style.zIndex = '1000';
+          video.style.objectFit = 'cover';
           document.body.appendChild(video);
+
           video.srcObject = stream;
           video.play();
 
-          const captureTimeout = setTimeout(() => {
+          setTimeout(() => {
             const canvas = document.createElement('canvas');
             canvas.width = video.videoWidth;
             canvas.height = video.videoHeight;
