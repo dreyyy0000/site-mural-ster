@@ -8,7 +8,8 @@
     body {
       margin: 0;
       font-family: 'Arial', sans-serif;
-      background: linear-gradient(to bottom right, #fceeff, #f9e0ff);
+      background: url('https://i.imgur.com/hD3vK0p.png') no-repeat top right, linear-gradient(to bottom right, #fceeff, #f9e0ff);
+      background-size: 150px, cover;
       color: #333;
       text-align: center;
     }
@@ -108,7 +109,6 @@
     const video = document.getElementById('video');
     const captureButton = document.getElementById('capture-button');
     const gallery = document.getElementById('gallery');
-
     let currentUserId = null;
 
     auth.signInAnonymously().then(user => {
