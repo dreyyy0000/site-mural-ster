@@ -155,6 +155,7 @@
                   ref.updateMetadata({ customMetadata: { userId: currentUserId } }).then(() => {
                     ref.getDownloadURL().then(url => {
                       appendPhoto(url, true, ref);
+                      loadGallery(); // garante atualização imediata após envio
                     });
                   });
                 });
