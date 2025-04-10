@@ -12,7 +12,6 @@
       padding: 0;
       color: #333;
       text-align: center;
-      overflow-x: hidden;
     }
 
     header {
@@ -21,22 +20,6 @@
       color: white;
       font-size: 2.5rem;
       font-weight: bold;
-      text-shadow: 1px 1px 2px #6e00c3;
-      position: relative;
-    }
-
-    header::after {
-      content: "💜✨💫";
-      position: absolute;
-      right: 1rem;
-      top: 1rem;
-      font-size: 1.5rem;
-      animation: flutuar 2s infinite ease-in-out;
-    }
-
-    @keyframes flutuar {
-      0%, 100% { transform: translateY(0); }
-      50% { transform: translateY(-5px); }
     }
 
     main {
@@ -45,57 +28,37 @@
 
     h2 {
       color: #6c3cc8;
-      margin-bottom: 1rem;
-    }
-
-    .camera-input {
-      display: none;
     }
 
     .button {
       background-color: #a66bff;
       color: white;
-      padding: 14px 28px;
+      padding: 16px 32px;
       border: none;
       border-radius: 12px;
-      font-size: 1.1rem;
+      font-size: 1.2rem;
       cursor: pointer;
-      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-      transition: transform 0.3s ease, background-color 0.3s ease;
-    }
-
-    .button:hover {
-      background-color: #9147ff;
-      transform: scale(1.05);
+      margin-top: 1rem;
     }
 
     .mural {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      grid-template-columns: repeat(2, 1fr);
       gap: 1rem;
-      margin-top: 3rem;
-      max-width: 800px;
-      margin-left: auto;
-      margin-right: auto;
-      padding-bottom: 3rem;
+      margin-top: 2rem;
+      padding: 1rem;
     }
 
     .foto {
       position: relative;
-      border-radius: 16px;
+      background: white;
+      border-radius: 12px;
       overflow: hidden;
-      box-shadow: 0 6px 12px rgba(0,0,0,0.1);
-      background-color: #fff;
-      transition: transform 0.3s ease;
-    }
-
-    .foto:hover {
-      transform: scale(1.03);
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
     }
 
     .foto img {
       width: 100%;
-      height: auto;
       display: block;
     }
 
@@ -107,88 +70,74 @@
       color: white;
       border: none;
       border-radius: 50%;
-      width: 26px;
-      height: 26px;
+      width: 24px;
+      height: 24px;
       font-size: 1rem;
       cursor: pointer;
     }
 
-    footer {
-      background: #f4e6ff;
-      padding: 1rem;
-      font-size: 0.85rem;
-      color: #999;
-      margin-top: 4rem;
+    input[type="file"] {
+      display: none;
     }
 
-    .coracoes {
-      position: absolute;
-      top: -10px;
-      left: -10px;
-      font-size: 2rem;
-      opacity: 0.1;
-      transform: rotate(-20deg);
+    footer {
+      margin-top: 3rem;
+      padding: 1rem;
+      font-size: 0.8rem;
+      color: #999;
     }
   </style>
 </head>
 <body>
-  <header>
-    💜 Mural da Ster 💜
-    <div class="coracoes">💜💜💜💜💜</div>
-  </header>
+  <header>💜 Mural da Ster 💜</header>
 
   <main>
-    <h2>Tire uma foto e envie para o mural</h2>
-    <input type="file" id="camera" class="camera-input" accept="image/*" capture="environment" />
-    <button class="button" onclick="abrirCamera()">📷 Tirar Foto</button>
+    <h2>Envie sua foto para o mural</h2>
+    <input type="file" accept="image/*" capture="environment" id="fotoInput">
+    <button class="button" onclick="document.getElementById('fotoInput').click()">📷 Tirar Foto</button>
 
-    <section class="mural" id="mural"></section>
+    <div class="mural" id="mural"></div>
   </main>
 
   <footer>Criado com 💜 por drey</footer>
 
   <script>
-    const mural = document.getElementById('mural');
-    const camera = document.getElementById('camera');
+    const mural = document.getElementById("mural");
+    const input = document.getElementById("fotoInput");
 
-    // carregar fotos salvas
-    let fotos = JSON.parse(localStorage.getItem('fotosSter')) || [];
-    fotos.forEach(url => mostrarFoto(url));
+    let fotos = JSON.parse(localStorage.getItem("fotosSter")) || [];
+    fotos.forEach(mostrarFoto);
 
-    function abrirCamera() {
-      camera.click();
-    }
-
-    camera.addEventListener('change', function () {
-      const arquivo = camera.files[0];
+    input.addEventListener("change", function () {
+      const arquivo = input.files[0];
       if (!arquivo) return;
 
       const reader = new FileReader();
-      reader.onload = function (event) {
-        const url = event.target.result;
+      reader.onload = function (e) {
+        const url = e.target.result;
         fotos.push(url);
-        localStorage.setItem('fotosSter', JSON.stringify(fotos));
+        localStorage.setItem("fotosSter", JSON.stringify(fotos));
         mostrarFoto(url);
-        camera.value = ""; // limpa o input
+        input.value = "";
       };
       reader.readAsDataURL(arquivo);
     });
 
     function mostrarFoto(url) {
-      const div = document.createElement('div');
-      div.className = 'foto';
+      const div = document.createElement("div");
+      div.className = "foto";
       div.innerHTML = `
-        <img src="${url}" alt="Foto do mural" />
+        <img src="${url}" alt="Foto do mural">
         <button class="remover" title="Excluir">&times;</button>
       `;
 
-      div.querySelector('.remover').addEventListener('click', () => {
+      div.querySelector(".remover").addEventListener("click", () => {
         mural.removeChild(div);
         fotos = fotos.filter(f => f !== url);
-        localStorage.setItem('fotosSter', JSON.stringify(fotos));
+        localStorage.setItem("fotosSter", JSON.stringify(fotos));
       });
 
-      mural.prepend(div); // adiciona no topo
+      mural.prepend(div);
     }
   </script>
 </body>
