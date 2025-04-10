@@ -6,138 +6,154 @@
   <title>Mural da Ster 💜</title>
   <style>
     body {
-      font-family: 'Segoe UI', sans-serif;
-      background: linear-gradient(135deg, #fbefff, #e5caff);
+      font-family: 'Arial', sans-serif;
+      background: #f9f1ff;
       margin: 0;
       padding: 0;
-      color: #333;
       text-align: center;
     }
-
     header {
+      background: linear-gradient(90deg, #d8b4f8, #b388eb);
       padding: 2rem;
-      background: linear-gradient(90deg, #d19eff, #b57aff);
       color: white;
-      font-size: 2.5rem;
-      font-weight: bold;
+      font-size: 2rem;
+      text-shadow: 1px 1px 2px #9147ff;
     }
-
-    main {
-      padding: 2rem 1rem;
+    #photoContainer {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 10px;
+      padding: 1rem;
     }
-
-    h2 {
-      color: #6c3cc8;
+    .photo-card {
+      position: relative;
+      width: 45%;
     }
-
-    .button {
+    .photo-card img {
+      width: 100%;
+      border-radius: 10px;
+    }
+    .delete-btn {
+      position: absolute;
+      top: 5px;
+      right: 5px;
+      background: rgba(255, 0, 0, 0.7);
+      border: none;
+      color: white;
+      border-radius: 50%;
+      padding: 5px 8px;
+      cursor: pointer;
+    }
+    #uploadBtn {
+      margin: 20px;
+      padding: 15px 25px;
+      font-size: 16px;
       background-color: #a66bff;
       color: white;
-      padding: 16px 32px;
       border: none;
-      border-radius: 12px;
-      font-size: 1.2rem;
-      cursor: pointer;
-      margin-top: 1rem;
-    }
-
-    .mural {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 1rem;
-      margin-top: 2rem;
-      padding: 1rem;
-    }
-
-    .foto {
-      position: relative;
-      background: white;
-      border-radius: 12px;
-      overflow: hidden;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-    }
-
-    .foto img {
-      width: 100%;
-      display: block;
-    }
-
-    .remover {
-      position: absolute;
-      top: 6px;
-      right: 6px;
-      background: rgba(0,0,0,0.6);
-      color: white;
-      border: none;
-      border-radius: 50%;
-      width: 24px;
-      height: 24px;
-      font-size: 1rem;
-      cursor: pointer;
-    }
-
-    input[type="file"] {
-      display: none;
-    }
-
-    footer {
-      margin-top: 3rem;
-      padding: 1rem;
-      font-size: 0.8rem;
-      color: #999;
+      border-radius: 10px;
     }
   </style>
 </head>
 <body>
   <header>💜 Mural da Ster 💜</header>
+  <input type="file" accept="image/*" capture="environment" id="uploadInput" style="display: none;" />
+  <button id="uploadBtn">Tirar Foto</button>
 
-  <main>
-    <h2>Envie sua foto para o mural</h2>
-    <input type="file" accept="image/*" capture="environment" id="fotoInput">
-    <button class="button" onclick="document.getElementById('fotoInput').click()">📷 Tirar Foto</button>
+  <div id="photoContainer"></div>
 
-    <div class="mural" id="mural"></div>
-  </main>
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js"></script>
 
-  <footer>Criado com 💜 por drey</footer>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+    import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
+    import { getStorage, ref as sRef, uploadBytes, getDownloadURL, deleteObject } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-storage.js";
+    import { getDatabase, ref, push, onValue, remove } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js";
 
-  <script>
-    const mural = document.getElementById("mural");
-    const input = document.getElementById("fotoInput");
+    const firebaseConfig = {
+      apiKey: "AIzaSyA94lQivhMSjYf44S-QrWmRVg6DynxPt68",
+      authDomain: "mural-ster.firebaseapp.com",
+      projectId: "mural-ster",
+      storageBucket: "mural-ster.appspot.com",
+      messagingSenderId: "585327762238",
+      appId: "1:585327762238:web:f48900f0a5942188c7ea6f",
+      measurementId: "G-YKHGYEH0R5"
+    };
 
-    let fotos = JSON.parse(localStorage.getItem("fotosSter")) || [];
-    fotos.forEach(mostrarFoto);
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth();
+    const storage = getStorage();
+    const db = getDatabase();
 
-    input.addEventListener("change", function () {
-      const arquivo = input.files[0];
-      if (!arquivo) return;
+    let userId = null;
 
-      const reader = new FileReader();
-      reader.onload = function (e) {
-        const url = e.target.result;
-        fotos.push(url);
-        localStorage.setItem("fotosSter", JSON.stringify(fotos));
-        mostrarFoto(url);
-        input.value = "";
-      };
-      reader.readAsDataURL(arquivo);
+    signInAnonymously(auth).catch(console.error);
+
+    onAuthStateChanged(auth, user => {
+      if (user) {
+        userId = user.uid;
+        carregarFotos();
+      }
     });
 
-    function mostrarFoto(url) {
-      const div = document.createElement("div");
-      div.className = "foto";
-      div.innerHTML = `
-        <img src="${url}" alt="Foto do mural">
-        <button class="remover" title="Excluir">&times;</button>
-      `;
+    const uploadInput = document.getElementById("uploadInput");
+    const uploadBtn = document.getElementById("uploadBtn");
+    const photoContainer = document.getElementById("photoContainer");
 
-      div.querySelector(".remover").addEventListener("click", () => {
-        mural.removeChild(div);
-        fotos = fotos.filter(f => f !== url);
-        localStorage.setItem("fotosSter", JSON.stringify(fotos));
+    uploadBtn.addEventListener("click", () => uploadInput.click());
+
+    uploadInput.addEventListener("change", async (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const storageRef = sRef(storage, `fotos/${Date.now()}-${file.name}`);
+      await uploadBytes(storageRef, file);
+      const url = await getDownloadURL(storageRef);
+
+      const fotoRef = ref(db, "fotos");
+      push(fotoRef, {
+        url,
+        user: userId,
+        nome: file.name,
+        path: storageRef.fullPath
       });
+    });
 
-      mural.prepend(div);
+    function carregarFotos() {
+      const fotoRef = ref(db, "fotos");
+      onValue(fotoRef, (snapshot) => {
+        photoContainer.innerHTML = "";
+        snapshot.forEach((child) => {
+          const data = child.val();
+          const key = child.key;
+
+          const card = document.createElement("div");
+          card.className = "photo-card";
+
+          const img = document.createElement("img");
+          img.src = data.url;
+
+          card.appendChild(img);
+
+          if (data.user === userId) {
+            const del = document.createElement("button");
+            del.className = "delete-btn";
+            del.innerText = "×";
+            del.onclick = async () => {
+              await deleteObject(sRef(storage, data.path));
+              await remove(ref(db, "fotos/" + key));
+            };
+            card.appendChild(del);
+          }
+
+          photoContainer.appendChild(card);
+        });
+      });
     }
   </script>
 </body>
