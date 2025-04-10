@@ -42,7 +42,7 @@
     await uploadBytes(imageRef, file);
 
     const url = await getDownloadURL(imageRef);
-    addPhotoToFeed(url, true, imageRef.fullPath);
+    showPhoto(url, true, imageRef.fullPath);
 
     uploadInput.value = '';
   });
@@ -52,30 +52,43 @@
     const listRef = ref(storage, 'fotos');
     const res = await listAll(listRef);
 
-    // Exibe as imagens mais recentes primeiro
-    for (const item of res.items.reverse()) {
+    // Mostra fotos mais novas primeiro
+    const items = res.items.reverse();
+
+    for (const item of items) {
       const url = await getDownloadURL(item);
       const isOwner = item.name.startsWith(userId);
-      addPhotoToFeed(url, isOwner, item.fullPath);
+      showPhoto(url, isOwner, item.fullPath);
     }
   }
 
-  function addPhotoToFeed(url, isOwner, path) {
+  function showPhoto(url, isOwner, path) {
     const div = document.createElement('div');
     div.className = 'photo';
-    div.innerHTML = `
-      <img src="${url}" alt="Foto enviada" />
-      ${isOwner ? `<button class="delete-btn" onclick="deletePhoto('${path}')">×</button>` : ''}
-    `;
-    // Adiciona a nova imagem no topo do feed
+
+    const img = document.createElement('img');
+    img.src = url;
+    img.alt = "Foto enviada";
+
+    div.appendChild(img);
+
+    if (isOwner) {
+      const btn = document.createElement('button');
+      btn.className = 'delete-btn';
+      btn.textContent = '×';
+      btn.onclick = () => deletePhoto(path);
+      div.appendChild(btn);
+    }
+
+    // Adiciona a nova foto no topo da galeria
     gallery.prepend(div);
   }
 
-  window.deletePhoto = async (path) => {
+  async function deletePhoto(path) {
     const photoRef = ref(storage, path);
     await deleteObject(photoRef);
     loadImages();
-  };
+  }
 
   loadImages();
 </script>
