@@ -88,9 +88,9 @@
   <footer>Feito com carinho por drey 💜</footer>
 
   <!-- Firebase -->
-  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-storage.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-storage-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
   <script>
     const firebaseConfig = {
       apiKey: "AIzaSyA94lQivhMSjYf44S-QrWmRVg6DynxPt68",
@@ -100,7 +100,7 @@
       messagingSenderId: "585327762238",
       appId: "1:585327762238:web:f48900f0a5942188c7ea6f",
     };
-    const app = firebase.initializeApp(firebaseConfig);
+    firebase.initializeApp(firebaseConfig);
     const storage = firebase.storage();
     const auth = firebase.auth();
   </script>
@@ -115,7 +115,7 @@
       currentUserId = user.user.uid;
     });
 
-    navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' }, audio: false })
+    navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'user' } }, audio: false })
       .then(stream => video.srcObject = stream)
       .catch(err => alert("Erro ao acessar câmera: " + err));
 
@@ -128,8 +128,11 @@
         const filename = `photo_${Date.now()}.jpg`;
         const ref = storage.ref('fotos/' + filename);
         ref.put(blob).then(() => {
-          ref.updateMetadata({ customMetadata: { userId: currentUserId } });
-          loadGallery();
+          ref.updateMetadata({ customMetadata: { userId: currentUserId } }).then(() => {
+            ref.getDownloadURL().then(url => {
+              appendPhoto(url, true, ref);
+            });
+          });
         });
       }, 'image/jpeg');
     });
@@ -140,30 +143,32 @@
         result.items.forEach(itemRef => {
           itemRef.getDownloadURL().then(url => {
             itemRef.getMetadata().then(meta => {
-              const isOwner = meta.customMetadata?.userId === currentUserId;
-              const div = document.createElement('div');
-              div.className = 'photo';
-              const img = document.createElement('img');
-              img.src = url;
-              img.alt = "Foto enviada";
-              div.appendChild(img);
-              if (isOwner) {
-                const del = document.createElement('button');
-                del.className = 'delete-btn';
-                del.innerText = '✕';
-                del.onclick = () => {
-                  itemRef.delete().then(loadGallery);
-                };
-                div.appendChild(del);
-              }
-              gallery.appendChild(div);
+              appendPhoto(url, meta.customMetadata?.userId === currentUserId, itemRef);
             });
           });
         });
       });
     }
 
-    setInterval(loadGallery, 5000);
+    function appendPhoto(url, isOwner, ref) {
+      const div = document.createElement('div');
+      div.className = 'photo';
+      const img = document.createElement('img');
+      img.src = url;
+      img.alt = "Foto enviada";
+      div.appendChild(img);
+      if (isOwner) {
+        const del = document.createElement('button');
+        del.className = 'delete-btn';
+        del.innerText = '✕';
+        del.onclick = () => {
+          ref.delete().then(loadGallery);
+        };
+        div.appendChild(del);
+      }
+      gallery.insertBefore(div, gallery.firstChild);
+    }
+
     window.onload = loadGallery;
   </script>
 </body>
