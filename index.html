@@ -8,84 +8,119 @@
     body {
       margin: 0;
       font-family: 'Segoe UI', sans-serif;
-      background: linear-gradient(to bottom right, #f7ecff, #e4d1ff);
+      background: linear-gradient(to bottom right, #ffe6f0, #f3d9ff);
       color: #333;
       display: flex;
       flex-direction: column;
       align-items: center;
     }
+
     header {
-      background: linear-gradient(90deg, #d8b4f8, #b388eb);
+      background: linear-gradient(90deg, #ffb3d1, #e0aaff);
       color: white;
       padding: 1.5rem;
-      font-size: 2rem;
+      font-size: 2.2rem;
       font-weight: bold;
       width: 100%;
       text-align: center;
       box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      border-bottom-left-radius: 20px;
+      border-bottom-right-radius: 20px;
     }
+
     main {
-      padding: 1rem;
+      padding: 1.5rem 1rem;
       width: 100%;
       max-width: 600px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
     }
+
+    #takePhotoBtn {
+      background-color: #d88dd1;
+      color: white;
+      border: none;
+      padding: 14px 28px;
+      font-size: 1.1rem;
+      border-radius: 30px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+      margin-top: 2rem;
+    }
+
+    #takePhotoBtn:hover {
+      background-color: #c26cc3;
+    }
+
     #gallery {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 10px;
-      margin-top: 1.5rem;
+      gap: 12px;
+      margin-top: 2rem;
+      width: 100%;
     }
+
     .photo {
       position: relative;
-      border-radius: 10px;
+      border-radius: 15px;
       overflow: hidden;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      box-shadow: 0 4px 10px rgba(0,0,0,0.15);
     }
+
     .photo img {
       width: 100%;
       display: block;
     }
+
     .delete-btn {
       position: absolute;
-      top: 5px;
-      right: 5px;
-      background: rgba(255, 0, 102, 0.8);
+      top: 6px;
+      right: 6px;
+      background: rgba(255, 102, 153, 0.85);
       color: white;
       border: none;
       border-radius: 50%;
-      width: 28px;
-      height: 28px;
+      width: 30px;
+      height: 30px;
       font-weight: bold;
+      font-size: 18px;
       cursor: pointer;
     }
-    .upload-btn {
-      background-color: #a66bff;
-      color: white;
-      border: none;
-      padding: 12px 24px;
-      font-size: 1rem;
-      border-radius: 10px;
-      margin-top: 1rem;
-      cursor: pointer;
-      transition: background-color 0.3s ease;
-    }
-    .upload-btn:hover {
-      background-color: #9147ff;
-    }
+
     footer {
       margin: 2rem 0 1rem;
       font-size: 0.85rem;
-      color: #666;
+      color: #888;
+    }
+
+    input[type="file"] {
+      display: none;
+    }
+
+    .florzinha {
+      font-size: 1.5rem;
+      margin-top: 1rem;
+      animation: girar 4s linear infinite;
+    }
+
+    @keyframes girar {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
     }
   </style>
 </head>
 <body>
   <header>💜 Mural da Ster 💜</header>
+
   <main>
-    <button class="upload-btn" id="takePhotoBtn">Tirar foto agora</button>
-    <input type="file" accept="image/*" capture="environment" id="uploadInput" style="display: none;" />
+    <div class="florzinha">🌸</div>
+    <button id="takePhotoBtn">Tirar foto agora</button>
+    <input type="file" accept="image/*" capture="user" id="uploadInput" />
     <div id="gallery"></div>
   </main>
+
   <footer>Feito com carinho por drey 💜</footer>
 
   <!-- Firebase -->
@@ -114,7 +149,7 @@
     localStorage.setItem('userId', userId);
 
     takePhotoBtn.addEventListener('click', () => {
-      uploadInput.click(); // isso ativa a câmera no celular
+      uploadInput.click(); // ativa a câmera frontal no celular
     });
 
     uploadInput.addEventListener('change', async (e) => {
