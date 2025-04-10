@@ -39,3 +39,154 @@
 
     #takePhotoBtn {
       background-color: #d88dd1;
+      color: white;
+      border: none;
+      padding: 14px 28px;
+      font-size: 1.1rem;
+      border-radius: 30px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+      margin-top: 2rem;
+    }
+
+    #takePhotoBtn:hover {
+      background-color: #c26cc3;
+    }
+
+    #gallery {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 2rem;
+      width: 100%;
+    }
+
+    .photo {
+      position: relative;
+      border-radius: 15px;
+      overflow: hidden;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+    }
+
+    .photo img {
+      width: 100%;
+      display: block;
+    }
+
+    .delete-btn {
+      position: absolute;
+      top: 6px;
+      right: 6px;
+      background: rgba(255, 102, 153, 0.85);
+      color: white;
+      border: none;
+      border-radius: 50%;
+      width: 30px;
+      height: 30px;
+      font-weight: bold;
+      font-size: 18px;
+      cursor: pointer;
+    }
+
+    footer {
+      margin: 2rem 0 1rem;
+      font-size: 0.85rem;
+      color: #888;
+    }
+
+    input[type="file"] {
+      display: none;
+    }
+
+    .florzinha {
+      font-size: 1.5rem;
+      margin-top: 1rem;
+      animation: girar 4s linear infinite;
+    }
+
+    @keyframes girar {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+  <header>💜 Mural da Ster 💜</header>
+
+  <main>
+    <div class="florzinha">🌸</div>
+    <button id="takePhotoBtn">Tirar foto agora</button>
+    <input type="file" accept="image/*" capture="user" id="uploadInput" />
+    <div id="gallery"></div>
+  </main>
+
+  <footer>Feito com carinho por drey 💜</footer>
+
+  <!-- Firebase -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
+    import { getStorage, ref, uploadBytes, getDownloadURL, listAll, deleteObject } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-storage.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyA94lQivhMSjYf44S-QrWmRVg6DynxPt68",
+      authDomain: "mural-ster.firebaseapp.com",
+      projectId: "mural-ster",
+      storageBucket: "mural-ster.appspot.com",
+      messagingSenderId: "585327762238",
+      appId: "1:585327762238:web:f48900f0a5942188c7ea6f",
+      measurementId: "G-YKHGYEH0R5"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const storage = getStorage(app);
+
+    const uploadInput = document.getElementById('uploadInput');
+    const gallery = document.getElementById('gallery');
+    const takePhotoBtn = document.getElementById('takePhotoBtn');
+
+    const userId = localStorage.getItem('userId') || crypto.randomUUID();
+    localStorage.setItem('userId', userId);
+
+    takePhotoBtn.addEventListener('click', () => {
+      uploadInput.click(); // ativa a câmera frontal no celular
+    });
+
+    uploadInput.addEventListener('change', async (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const fileName = ${userId}-${Date.now()}.jpg;
+      const imageRef = ref(storage, fotos/${fileName});
+      await uploadBytes(imageRef, file);
+      uploadInput.value = '';
+      loadImages();
+    });
+
+    async function loadImages() {
+      gallery.innerHTML = '';
+      const listRef = ref(storage, 'fotos');
+      const res = await listAll(listRef);
+      for (const item of res.items.reverse()) {
+        const url = await getDownloadURL(item);
+        const isOwner = item.name.startsWith(userId);
+        const div = document.createElement('div');
+        div.className = 'photo';
+        div.innerHTML = 
+          <img src="${url}" alt="Foto enviada" />
+          ${isOwner ? <button class="delete-btn" onclick="deletePhoto('${item.fullPath}')">×</button> : ''}
+        ;
+        gallery.appendChild(div);
+      }
+    }
+
+    window.deletePhoto = async (path) => {
+      const photoRef = ref(storage, path);
+      await deleteObject(photoRef);
+      loadImages();
+    };
+
+    loadImages();
+  </script>
+</body>
+</html>
