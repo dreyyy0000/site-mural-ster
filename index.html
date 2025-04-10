@@ -26,43 +26,55 @@
   const gallery = document.getElementById('gallery');
   const takePhotoBtn = document.getElementById('takePhotoBtn');
 
+  // ID único salvo no navegador
   const userId = localStorage.getItem('userId') || crypto.randomUUID();
   localStorage.setItem('userId', userId);
 
+  // Clicar no botão = abrir câmera
   takePhotoBtn.addEventListener('click', () => {
     uploadInput.click();
   });
 
+  // Enviar foto
   uploadInput.addEventListener('change', async (e) => {
     const file = e.target.files[0];
     if (!file) return;
 
     const fileName = `${userId}-${Date.now()}.jpg`;
-    const imageRef = ref(storage, `fotos/${fileName}`);
-    await uploadBytes(imageRef, file);
+    const filePath = `fotos/${fileName}`;
+    const imageRef = ref(storage, filePath);
 
-    const url = await getDownloadURL(imageRef);
-    showPhoto(url, true, imageRef.fullPath);
-
-    uploadInput.value = '';
+    try {
+      await uploadBytes(imageRef, file);
+      const url = await getDownloadURL(imageRef);
+      addPhotoToFeed(url, true, filePath);
+      uploadInput.value = ''; // limpa input
+    } catch (error) {
+      console.error('Erro ao enviar imagem:', error);
+    }
   });
 
+  // Carrega todas as fotos da galeria
   async function loadImages() {
     gallery.innerHTML = '';
     const listRef = ref(storage, 'fotos');
-    const res = await listAll(listRef);
 
-    // Mostra fotos mais novas primeiro
-    const items = res.items.reverse();
+    try {
+      const res = await listAll(listRef);
+      const items = res.items.reverse();
 
-    for (const item of items) {
-      const url = await getDownloadURL(item);
-      const isOwner = item.name.startsWith(userId);
-      showPhoto(url, isOwner, item.fullPath);
+      for (const item of items) {
+        const url = await getDownloadURL(item);
+        const isOwner = item.name.startsWith(userId);
+        addPhotoToFeed(url, isOwner, item.fullPath);
+      }
+    } catch (error) {
+      console.error('Erro ao carregar galeria:', error);
     }
   }
 
-  function showPhoto(url, isOwner, path) {
+  // Mostra uma foto na galeria
+  function addPhotoToFeed(url, isOwner, path) {
     const div = document.createElement('div');
     div.className = 'photo';
 
@@ -73,22 +85,29 @@
     div.appendChild(img);
 
     if (isOwner) {
-      const btn = document.createElement('button');
-      btn.className = 'delete-btn';
-      btn.textContent = '×';
-      btn.onclick = () => deletePhoto(path);
-      div.appendChild(btn);
+      const deleteBtn = document.createElement('button');
+      deleteBtn.className = 'delete-btn';
+      deleteBtn.textContent = '×';
+      deleteBtn.addEventListener('click', async () => {
+        await deletePhoto(path);
+      });
+      div.appendChild(deleteBtn);
     }
 
-    // Adiciona a nova foto no topo da galeria
     gallery.prepend(div);
   }
 
+  // Apagar imagem
   async function deletePhoto(path) {
     const photoRef = ref(storage, path);
-    await deleteObject(photoRef);
-    loadImages();
+    try {
+      await deleteObject(photoRef);
+      loadImages();
+    } catch (error) {
+      console.error('Erro ao deletar imagem:', error);
+    }
   }
 
+  // Iniciar galeria
   loadImages();
 </script>
