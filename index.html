@@ -24,22 +24,17 @@
     #camera-section {
       margin: 2rem 0;
     }
-    video {
-      width: 90%;
-      max-width: 300px;
-      border: 5px solid #d9a7ff;
-      border-radius: 1rem;
-    }
     #capture-button {
       background-color: #b57bff;
       color: white;
       border: none;
-      padding: 1rem 2rem;
-      font-size: 1.2rem;
-      border-radius: 1.5rem;
-      margin-top: 1rem;
+      padding: 0.8rem 1.6rem;
+      font-size: 1rem;
+      border-radius: 2rem;
       cursor: pointer;
       box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+      position: relative;
+      top: 0;
     }
     #capture-button:hover {
       background-color: #9147ff;
@@ -48,15 +43,14 @@
       display: flex;
       flex-wrap: wrap;
       justify-content: center;
-      padding: 2rem;
+      padding: 2rem 1rem;
       gap: 1rem;
-      overflow-y: auto;
     }
     .photo {
       position: relative;
     }
     .photo img {
-      width: 160px;
+      width: 140px;
       height: auto;
       border-radius: 1rem;
       box-shadow: 0 2px 5px rgba(0,0,0,0.1);
@@ -82,7 +76,6 @@
 <body>
   <header>💜 Mural da Ster 💜</header>
   <section id="camera-section">
-    <video id="video" autoplay playsinline></video><br>
     <button id="capture-button">Tirar Foto 💜</button>
   </section>
   <section id="gallery"></section>
@@ -106,7 +99,6 @@
     const auth = firebase.auth();
   </script>
   <script>
-    const video = document.getElementById('video');
     const captureButton = document.getElementById('capture-button');
     const gallery = document.getElementById('gallery');
     let currentUserId = null;
@@ -115,26 +107,40 @@
       currentUserId = user.user.uid;
     });
 
-    navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'user' } }, audio: false })
-      .then(stream => video.srcObject = stream)
-      .catch(err => alert("Erro ao acessar câmera: " + err));
-
     captureButton.addEventListener('click', () => {
-      const canvas = document.createElement('canvas');
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
-      canvas.getContext('2d').drawImage(video, 0, 0);
-      canvas.toBlob(blob => {
-        const filename = `photo_${Date.now()}.jpg`;
-        const ref = storage.ref('fotos/' + filename);
-        ref.put(blob).then(() => {
-          ref.updateMetadata({ customMetadata: { userId: currentUserId } }).then(() => {
-            ref.getDownloadURL().then(url => {
-              appendPhoto(url, true, ref);
-            });
-          });
-        });
-      }, 'image/jpeg');
+      navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' }, audio: false })
+        .then(stream => {
+          const video = document.createElement('video');
+          video.style.display = 'none';
+          document.body.appendChild(video);
+          video.srcObject = stream;
+          video.play();
+
+          const track = stream.getVideoTracks()[0];
+          setTimeout(() => {
+            const canvas = document.createElement('canvas');
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(video, 0, 0);
+
+            canvas.toBlob(blob => {
+              const filename = `photo_${Date.now()}.jpg`;
+              const ref = storage.ref('fotos/' + filename);
+              ref.put(blob).then(() => {
+                ref.updateMetadata({ customMetadata: { userId: currentUserId } }).then(() => {
+                  ref.getDownloadURL().then(url => {
+                    appendPhoto(url, true, ref);
+                  });
+                });
+              });
+            }, 'image/jpeg');
+
+            stream.getTracks().forEach(t => t.stop());
+            video.remove();
+          }, 1000);
+        })
+        .catch(err => alert("Erro ao acessar câmera: " + err));
     });
 
     function loadGallery() {
