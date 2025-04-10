@@ -82,7 +82,7 @@
 <body>
   <header>💜 Mural da Ster 💜</header>
   <main>
-    <button class="upload-btn" onclick="document.getElementById('uploadInput').click()">Tirar foto</button>
+    <button class="upload-btn" onclick="abrirCamera()">Tirar foto</button>
     <input type="file" accept="image/*" id="uploadInput" style="display: none;" />
     <div id="gallery"></div>
   </main>
@@ -112,6 +112,11 @@
     const userId = localStorage.getItem('userId') || crypto.randomUUID();
     localStorage.setItem('userId', userId);
 
+    function abrirCamera() {
+      uploadInput.setAttribute('capture', 'environment'); // usa câmera traseira quando possível
+      uploadInput.click();
+    }
+
     uploadInput.addEventListener('change', async (e) => {
       const file = e.target.files[0];
       if (!file) return;
@@ -119,6 +124,7 @@
       const fileName = `${userId}-${Date.now()}.jpg`;
       const imageRef = ref(storage, `fotos/${fileName}`);
       await uploadBytes(imageRef, file);
+      uploadInput.value = '';
       loadImages();
     });
 
