@@ -45,6 +45,7 @@
       justify-content: center;
       padding: 2rem 1rem;
       gap: 1rem;
+      overflow-y: auto;
     }
     .photo {
       position: relative;
@@ -122,7 +123,7 @@
     });
 
     captureButton.addEventListener('click', () => {
-      navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: "environment" } }, audio: false })
+      navigator.mediaDevices.getUserMedia({ video: true, audio: false })
         .then(stream => {
           const video = document.createElement('video');
           video.style.display = 'none';
@@ -130,7 +131,7 @@
           video.srcObject = stream;
           video.play();
 
-          setTimeout(() => {
+          const captureTimeout = setTimeout(() => {
             const canvas = document.createElement('canvas');
             canvas.width = video.videoWidth;
             canvas.height = video.videoHeight;
@@ -151,7 +152,7 @@
 
             stream.getTracks().forEach(t => t.stop());
             video.remove();
-          }, 1000);
+          }, 1500);
         })
         .catch(err => alert("Erro ao acessar câmera: " + err));
     });
