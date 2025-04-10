@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Bem-vindo ao Mural da Ster 💜</title>
+  <title>Mural da Ster 💜</title>
   <style>
     body {
       font-family: 'Arial', sans-serif;
@@ -13,6 +13,7 @@
       color: #333;
       text-align: center;
     }
+
     header {
       padding: 2rem;
       background: linear-gradient(90deg, #d8b4f8, #b388eb);
@@ -21,33 +22,73 @@
       font-weight: bold;
       text-shadow: 1px 1px 2px #9147ff;
     }
+
     main {
       padding: 3rem 1rem;
     }
+
     h2 {
       color: #6c3cc8;
       font-size: 2rem;
     }
-    p {
-      font-size: 1.1rem;
-      max-width: 600px;
-      margin: 1rem auto;
-      line-height: 1.6;
+
+    form {
+      margin-top: 2rem;
     }
+
+    input[type="file"] {
+      margin: 1rem 0;
+    }
+
     .button {
-      display: inline-block;
       background-color: #a66bff;
       color: white;
-      padding: 12px 24px;
+      padding: 10px 20px;
+      border: none;
       border-radius: 10px;
-      font-size: 1.1rem;
-      margin-top: 2rem;
-      text-decoration: none;
-      transition: background-color 0.3s ease;
+      font-size: 1rem;
+      cursor: pointer;
+      margin-top: 1rem;
     }
+
     .button:hover {
       background-color: #9147ff;
     }
+
+    .mural {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 1rem;
+      margin-top: 3rem;
+    }
+
+    .foto {
+      position: relative;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+
+    .foto img {
+      max-width: 250px;
+      border-radius: 10px;
+    }
+
+    .remover {
+      position: absolute;
+      top: 5px;
+      right: 5px;
+      background: rgba(0,0,0,0.6);
+      color: white;
+      border: none;
+      border-radius: 50%;
+      width: 25px;
+      height: 25px;
+      font-size: 1rem;
+      cursor: pointer;
+    }
+
     footer {
       margin-top: 4rem;
       padding: 1rem;
@@ -60,12 +101,58 @@
   <header>💜 Mural da Ster 💜</header>
 
   <main>
-    <h2>O mural está no ar!</h2>
-    <p>Agora você pode enviar fotos lindas para o mural da Ster 💜</p>
-    <p>Mais carinho e novidades estão a caminho. Fique à vontade!</p>
-    <a class="button" href="#">Enviar uma foto</a>
+    <h2>Envie uma foto para o mural</h2>
+
+    <form id="form-foto">
+      <input type="file" id="arquivo" accept="image/*" required>
+      <br>
+      <button type="submit" class="button">Enviar Foto</button>
+    </form>
+
+    <section class="mural" id="mural"></section>
   </main>
 
   <footer>Criado com 💜 por drey</footer>
+
+  <script>
+    const mural = document.getElementById('mural');
+    const form = document.getElementById('form-foto');
+    const input = document.getElementById('arquivo');
+
+    // Carrega as fotos salvas
+    let fotos = JSON.parse(localStorage.getItem('fotosSter')) || [];
+    fotos.forEach(addFotoNaTela);
+
+    form.addEventListener('submit', function(e) {
+      e.preventDefault();
+      const arquivo = input.files[0];
+      if (!arquivo) return;
+
+      const reader = new FileReader();
+      reader.onload = function(event) {
+        const url = event.target.result;
+        fotos.push(url);
+        localStorage.setItem('fotosSter', JSON.stringify(fotos));
+        addFotoNaTela(url);
+        input.value = "";
+      };
+      reader.readAsDataURL(arquivo);
+    });
+
+    function addFotoNaTela(url) {
+      const div = document.createElement('div');
+      div.className = 'foto';
+      div.innerHTML = `
+        <img src="${url}" alt="Foto enviada">
+        <button class="remover" title="Remover">&times;</button>
+      `;
+      div.querySelector('.remover').addEventListener('click', () => {
+        mural.removeChild(div);
+        fotos = fotos.filter(f => f !== url);
+        localStorage.setItem('fotosSter', JSON.stringify(fotos));
+      });
+      mural.prepend(div); // fotos novas no topo
+    }
+  </script>
 </body>
 </html>
