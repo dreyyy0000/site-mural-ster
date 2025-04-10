@@ -1,210 +1,81 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Mural da Ster 💜</title>
-  <style>
-    body {
-      margin: 0;
-      font-family: 'Arial', sans-serif;
-      background: url('https://i.imgur.com/hD3vK0p.png') no-repeat top right, linear-gradient(to bottom right, #fceeff, #f9e0ff);
-      background-size: 150px, cover;
-      color: #333;
-      text-align: center;
-    }
-    header {
-      background: #d9a7ff;
-      color: white;
-      padding: 1.5rem;
-      font-size: 2rem;
-      font-weight: bold;
-      text-shadow: 1px 1px 3px #9147ff;
-    }
-    #camera-section {
-      margin: 2rem 0;
-    }
-    #capture-button {
-      background-color: #b57bff;
-      color: white;
-      border: none;
-      padding: 0.8rem 1.6rem;
-      font-size: 1rem;
-      border-radius: 2rem;
-      cursor: pointer;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-      margin: auto;
-      display: block;
-    }
-    #capture-button:hover {
-      background-color: #9147ff;
-    }
-    #gallery {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      padding: 2rem 1rem;
-      gap: 1rem;
-      overflow-y: auto;
-    }
-    .photo {
-      position: relative;
-    }
-    .photo img {
-      width: 140px;
-      height: auto;
-      border-radius: 1rem;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-    }
-    .delete-btn {
-      position: absolute;
-      top: 5px;
-      right: 5px;
-      background-color: rgba(255, 0, 100, 0.8);
-      border: none;
-      color: white;
-      border-radius: 50%;
-      cursor: pointer;
-      padding: 0.4rem 0.6rem;
-    }
-    footer {
-      margin: 2rem 0 1rem;
-      color: #888;
-      font-size: 0.9rem;
-    }
-    .flor {
-      width: 40px;
-      height: 40px;
-      background: url('https://i.imgur.com/nHwIEQp.gif') no-repeat center center;
-      background-size: contain;
-      animation: girar 6s linear infinite;
-      margin: auto;
-      margin-bottom: 10px;
-    }
-    @keyframes girar {
-      from { transform: rotate(0deg); }
-      to { transform: rotate(360deg); }
-    }
-  </style>
-</head>
-<body>
-  <header>💜 Mural da Ster 💜</header>
-  <div class="flor"></div>
-  <section id="camera-section">
-    <button id="capture-button">Tirar Foto 💜</button>
-  </section>
-  <section id="gallery"></section>
-  <footer>Feito com carinho por drey 💜</footer>
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
+  import {
+    getStorage,
+    ref,
+    uploadBytes,
+    getDownloadURL,
+    listAll,
+    deleteObject
+  } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-storage.js";
 
-  <!-- Firebase -->
-  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-storage-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
-  <script>
-    const firebaseConfig = {
-      apiKey: "AIzaSyA94lQivhMSjYf44S-QrWmRVg6DynxPt68",
-      authDomain: "mural-ster.firebaseapp.com",
-      projectId: "mural-ster",
-      storageBucket: "mural-ster.appspot.com",
-      messagingSenderId: "585327762238",
-      appId: "1:585327762238:web:f48900f0a5942188c7ea6f",
-    };
-    firebase.initializeApp(firebaseConfig);
-    const storage = firebase.storage();
-    const auth = firebase.auth();
-  </script>
-  <script>
-    const captureButton = document.getElementById('capture-button');
-    const gallery = document.getElementById('gallery');
-    let currentUserId = null;
+  const firebaseConfig = {
+    apiKey: "AIzaSyA94lQivhMSjYf44S-QrWmRVg6DynxPt68",
+    authDomain: "mural-ster.firebaseapp.com",
+    projectId: "mural-ster",
+    storageBucket: "mural-ster.appspot.com",
+    messagingSenderId: "585327762238",
+    appId: "1:585327762238:web:f48900f0a5942188c7ea6f",
+    measurementId: "G-YKHGYEH0R5"
+  };
 
-    auth.signInAnonymously().then(user => {
-      currentUserId = user.user.uid;
-    });
+  const app = initializeApp(firebaseConfig);
+  const storage = getStorage(app);
 
-    captureButton.addEventListener('click', () => {
-      navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' } }, audio: false })
-        .then(stream => {
-          const video = document.createElement('video');
-          video.style.position = 'fixed';
-          video.style.top = '0';
-          video.style.left = '0';
-          video.style.width = '100%';
-          video.style.height = '100%';
-          video.style.zIndex = '1000';
-          video.style.objectFit = 'cover';
-          document.body.appendChild(video);
+  const uploadInput = document.getElementById('uploadInput');
+  const gallery = document.getElementById('gallery');
+  const takePhotoBtn = document.getElementById('takePhotoBtn');
 
-          video.srcObject = stream;
-          video.play();
+  const userId = localStorage.getItem('userId') || crypto.randomUUID();
+  localStorage.setItem('userId', userId);
 
-          const confirmShot = confirm("Deseja tirar a foto agora?");
+  takePhotoBtn.addEventListener('click', () => {
+    uploadInput.click();
+  });
 
-          if (confirmShot) {
-            setTimeout(() => {
-              const canvas = document.createElement('canvas');
-              canvas.width = video.videoWidth;
-              canvas.height = video.videoHeight;
-              const ctx = canvas.getContext('2d');
-              ctx.drawImage(video, 0, 0);
+  uploadInput.addEventListener('change', async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
 
-              canvas.toBlob(blob => {
-                const filename = `photo_${Date.now()}.jpg`;
-                const ref = storage.ref('fotos/' + filename);
-                ref.put(blob).then(() => {
-                  ref.updateMetadata({ customMetadata: { userId: currentUserId } }).then(() => {
-                    ref.getDownloadURL().then(url => {
-                      appendPhoto(url, true, ref);
-                      loadGallery(); // garante atualização imediata após envio
-                    });
-                  });
-                });
-              }, 'image/jpeg');
+    const fileName = `${userId}-${Date.now()}.jpg`;
+    const imageRef = ref(storage, `fotos/${fileName}`);
+    await uploadBytes(imageRef, file);
 
-              stream.getTracks().forEach(t => t.stop());
-              video.remove();
-            }, 1500);
-          } else {
-            stream.getTracks().forEach(t => t.stop());
-            video.remove();
-          }
-        })
-        .catch(err => alert("Erro ao acessar câmera: " + err));
-    });
+    const url = await getDownloadURL(imageRef);
+    addPhotoToFeed(url, true, imageRef.fullPath);
 
-    function loadGallery() {
-      gallery.innerHTML = '';
-      storage.ref('fotos').listAll().then(result => {
-        result.items.reverse().forEach(itemRef => {
-          itemRef.getDownloadURL().then(url => {
-            itemRef.getMetadata().then(meta => {
-              appendPhoto(url, meta.customMetadata?.userId === currentUserId, itemRef);
-            });
-          });
-        });
-      });
+    uploadInput.value = '';
+  });
+
+  async function loadImages() {
+    gallery.innerHTML = '';
+    const listRef = ref(storage, 'fotos');
+    const res = await listAll(listRef);
+
+    // Exibe as imagens mais recentes primeiro
+    for (const item of res.items.reverse()) {
+      const url = await getDownloadURL(item);
+      const isOwner = item.name.startsWith(userId);
+      addPhotoToFeed(url, isOwner, item.fullPath);
     }
+  }
 
-    function appendPhoto(url, isOwner, ref) {
-      const div = document.createElement('div');
-      div.className = 'photo';
-      const img = document.createElement('img');
-      img.src = url;
-      img.alt = "Foto enviada";
-      div.appendChild(img);
-      if (isOwner) {
-        const del = document.createElement('button');
-        del.className = 'delete-btn';
-        del.innerText = '✕';
-        del.onclick = () => {
-          ref.delete().then(loadGallery);
-        };
-        div.appendChild(del);
-      }
-      gallery.insertBefore(div, gallery.firstChild);
-    }
+  function addPhotoToFeed(url, isOwner, path) {
+    const div = document.createElement('div');
+    div.className = 'photo';
+    div.innerHTML = `
+      <img src="${url}" alt="Foto enviada" />
+      ${isOwner ? `<button class="delete-btn" onclick="deletePhoto('${path}')">×</button>` : ''}
+    `;
+    // Adiciona a nova imagem no topo do feed
+    gallery.prepend(div);
+  }
 
-    window.onload = loadGallery;
-  </script>
-</body>
-</html>
+  window.deletePhoto = async (path) => {
+    const photoRef = ref(storage, path);
+    await deleteObject(photoRef);
+    loadImages();
+  };
+
+  loadImages();
+</script>
