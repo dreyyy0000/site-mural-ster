@@ -1,13 +1,13 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Mural da Ster 💜</title>
   <style>
     body {
-      font-family: 'Arial', sans-serif;
-      background: linear-gradient(135deg, #f3e7ff, #e1c4ff);
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #fbefff, #e5caff);
       margin: 0;
       padding: 0;
       color: #333;
@@ -16,39 +16,36 @@
 
     header {
       padding: 2rem;
-      background: linear-gradient(90deg, #d8b4f8, #b388eb);
+      background: linear-gradient(90deg, #d19eff, #b57aff);
       color: white;
       font-size: 2.5rem;
       font-weight: bold;
-      text-shadow: 1px 1px 2px #9147ff;
+      text-shadow: 1px 1px 2px #6e00c3;
     }
 
     main {
-      padding: 3rem 1rem;
+      padding: 2rem 1rem;
     }
 
     h2 {
       color: #6c3cc8;
-      font-size: 2rem;
+      margin-bottom: 1rem;
     }
 
-    form {
-      margin-top: 2rem;
-    }
-
-    input[type="file"] {
-      margin: 1rem 0;
+    .camera-input {
+      display: none;
     }
 
     .button {
       background-color: #a66bff;
       color: white;
-      padding: 10px 20px;
+      padding: 14px 28px;
       border: none;
-      border-radius: 10px;
-      font-size: 1rem;
+      border-radius: 12px;
+      font-size: 1.1rem;
       cursor: pointer;
-      margin-top: 1rem;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      transition: background-color 0.3s ease;
     }
 
     .button:hover {
@@ -56,35 +53,39 @@
     }
 
     .mural {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
       gap: 1rem;
       margin-top: 3rem;
+      max-width: 800px;
+      margin-left: auto;
+      margin-right: auto;
     }
 
     .foto {
       position: relative;
-      border-radius: 10px;
+      border-radius: 12px;
       overflow: hidden;
-      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      background-color: #fff;
     }
 
     .foto img {
-      max-width: 250px;
-      border-radius: 10px;
+      width: 100%;
+      height: auto;
+      display: block;
     }
 
     .remover {
       position: absolute;
-      top: 5px;
-      right: 5px;
+      top: 6px;
+      right: 6px;
       background: rgba(0,0,0,0.6);
       color: white;
       border: none;
       border-radius: 50%;
-      width: 25px;
-      height: 25px;
+      width: 26px;
+      height: 26px;
       font-size: 1rem;
       cursor: pointer;
     }
@@ -92,8 +93,8 @@
     footer {
       margin-top: 4rem;
       padding: 1rem;
-      font-size: 0.8rem;
-      color: #888;
+      font-size: 0.85rem;
+      color: #999;
     }
   </style>
 </head>
@@ -101,13 +102,9 @@
   <header>💜 Mural da Ster 💜</header>
 
   <main>
-    <h2>Envie uma foto para o mural</h2>
-
-    <form id="form-foto">
-      <input type="file" id="arquivo" accept="image/*" required>
-      <br>
-      <button type="submit" class="button">Enviar Foto</button>
-    </form>
+    <h2>Tire uma foto e envie para o mural</h2>
+    <input type="file" id="camera" class="camera-input" accept="image/*" capture="environment" />
+    <button class="button" onclick="abrirCamera()">📷 Tirar Foto</button>
 
     <section class="mural" id="mural"></section>
   </main>
@@ -116,42 +113,43 @@
 
   <script>
     const mural = document.getElementById('mural');
-    const form = document.getElementById('form-foto');
-    const input = document.getElementById('arquivo');
-
-    // Carrega as fotos salvas
+    const camera = document.getElementById('camera');
     let fotos = JSON.parse(localStorage.getItem('fotosSter')) || [];
-    fotos.forEach(addFotoNaTela);
 
-    form.addEventListener('submit', function(e) {
-      e.preventDefault();
-      const arquivo = input.files[0];
+    fotos.forEach(mostrarFoto);
+
+    function abrirCamera() {
+      camera.click();
+    }
+
+    camera.addEventListener('change', function () {
+      const arquivo = camera.files[0];
       if (!arquivo) return;
 
       const reader = new FileReader();
-      reader.onload = function(event) {
+      reader.onload = function (event) {
         const url = event.target.result;
         fotos.push(url);
         localStorage.setItem('fotosSter', JSON.stringify(fotos));
-        addFotoNaTela(url);
-        input.value = "";
+        mostrarFoto(url);
+        camera.value = "";
       };
       reader.readAsDataURL(arquivo);
     });
 
-    function addFotoNaTela(url) {
+    function mostrarFoto(url) {
       const div = document.createElement('div');
       div.className = 'foto';
       div.innerHTML = `
-        <img src="${url}" alt="Foto enviada">
-        <button class="remover" title="Remover">&times;</button>
+        <img src="${url}" alt="Foto do mural">
+        <button class="remover" title="Excluir">&times;</button>
       `;
       div.querySelector('.remover').addEventListener('click', () => {
         mural.removeChild(div);
         fotos = fotos.filter(f => f !== url);
         localStorage.setItem('fotosSter', JSON.stringify(fotos));
       });
-      mural.prepend(div); // fotos novas no topo
+      mural.prepend(div);
     }
   </script>
 </body>
