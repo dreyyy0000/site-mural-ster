@@ -12,6 +12,7 @@
       padding: 0;
       color: #333;
       text-align: center;
+      overflow-x: hidden;
     }
 
     header {
@@ -21,6 +22,21 @@
       font-size: 2.5rem;
       font-weight: bold;
       text-shadow: 1px 1px 2px #6e00c3;
+      position: relative;
+    }
+
+    header::after {
+      content: "💜✨💫";
+      position: absolute;
+      right: 1rem;
+      top: 1rem;
+      font-size: 1.5rem;
+      animation: flutuar 2s infinite ease-in-out;
+    }
+
+    @keyframes flutuar {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-5px); }
     }
 
     main {
@@ -45,29 +61,36 @@
       font-size: 1.1rem;
       cursor: pointer;
       box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-      transition: background-color 0.3s ease;
+      transition: transform 0.3s ease, background-color 0.3s ease;
     }
 
     .button:hover {
       background-color: #9147ff;
+      transform: scale(1.05);
     }
 
     .mural {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
       gap: 1rem;
       margin-top: 3rem;
       max-width: 800px;
       margin-left: auto;
       margin-right: auto;
+      padding-bottom: 3rem;
     }
 
     .foto {
       position: relative;
-      border-radius: 12px;
+      border-radius: 16px;
       overflow: hidden;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      box-shadow: 0 6px 12px rgba(0,0,0,0.1);
       background-color: #fff;
+      transition: transform 0.3s ease;
+    }
+
+    .foto:hover {
+      transform: scale(1.03);
     }
 
     .foto img {
@@ -91,15 +114,28 @@
     }
 
     footer {
-      margin-top: 4rem;
+      background: #f4e6ff;
       padding: 1rem;
       font-size: 0.85rem;
       color: #999;
+      margin-top: 4rem;
+    }
+
+    .coracoes {
+      position: absolute;
+      top: -10px;
+      left: -10px;
+      font-size: 2rem;
+      opacity: 0.1;
+      transform: rotate(-20deg);
     }
   </style>
 </head>
 <body>
-  <header>💜 Mural da Ster 💜</header>
+  <header>
+    💜 Mural da Ster 💜
+    <div class="coracoes">💜💜💜💜💜</div>
+  </header>
 
   <main>
     <h2>Tire uma foto e envie para o mural</h2>
@@ -114,9 +150,10 @@
   <script>
     const mural = document.getElementById('mural');
     const camera = document.getElementById('camera');
-    let fotos = JSON.parse(localStorage.getItem('fotosSter')) || [];
 
-    fotos.forEach(mostrarFoto);
+    // carregar fotos salvas
+    let fotos = JSON.parse(localStorage.getItem('fotosSter')) || [];
+    fotos.forEach(url => mostrarFoto(url));
 
     function abrirCamera() {
       camera.click();
@@ -132,7 +169,7 @@
         fotos.push(url);
         localStorage.setItem('fotosSter', JSON.stringify(fotos));
         mostrarFoto(url);
-        camera.value = "";
+        camera.value = ""; // limpa o input
       };
       reader.readAsDataURL(arquivo);
     });
@@ -141,15 +178,17 @@
       const div = document.createElement('div');
       div.className = 'foto';
       div.innerHTML = `
-        <img src="${url}" alt="Foto do mural">
+        <img src="${url}" alt="Foto do mural" />
         <button class="remover" title="Excluir">&times;</button>
       `;
+
       div.querySelector('.remover').addEventListener('click', () => {
         mural.removeChild(div);
         fotos = fotos.filter(f => f !== url);
         localStorage.setItem('fotosSter', JSON.stringify(fotos));
       });
-      mural.prepend(div);
+
+      mural.prepend(div); // adiciona no topo
     }
   </script>
 </body>
