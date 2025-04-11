@@ -56,7 +56,7 @@
 
     #gallery {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+      grid-template-columns: 1fr 1fr;
       gap: 12px;
       margin-top: 2rem;
       width: 100%;
@@ -116,53 +116,77 @@
 
   <main>
     <div class="florzinha">🌸</div>
-    <button id="takePhotoBtn">Tirar Foto 💜</button>
-    <input type="file" accept="image/*" capture="environment" id="uploadInput" />
-    <div id="gallery"></div> <!-- Galeria de fotos -->
-
+    <button id="takePhotoBtn">Tirar foto agora</button>
+    <input type="file" accept="image/*" capture="user" id="uploadInput" />
+    <div id="gallery"></div>
   </main>
 
-  <footer>
-    <p>&copy; 2025 Mural da Ster. Todos os direitos reservados.</p>
-  </footer>
+  <footer>Feito com carinho por drey 💜</footer>
 
-  <script>
-    const takePhotoBtn = document.getElementById('takePhotoBtn');
+  <!-- Firebase -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
+    import { getStorage, ref, uploadBytes, getDownloadURL, listAll, deleteObject } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-storage.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyA94lQivhMSjYf44S-QrWmRVg6DynxPt68",
+      authDomain: "mural-ster.firebaseapp.com",
+      projectId: "mural-ster",
+      storageBucket: "mural-ster.appspot.com",
+      messagingSenderId: "585327762238",
+      appId: "1:585327762238:web:f48900f0a5942188c7ea6f",
+      measurementId: "G-YKHGYEH0R5"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const storage = getStorage(app);
+
     const uploadInput = document.getElementById('uploadInput');
     const gallery = document.getElementById('gallery');
+    const takePhotoBtn = document.getElementById('takePhotoBtn');
+
+    const userId = localStorage.getItem('userId') || crypto.randomUUID();
+    localStorage.setItem('userId', userId);
 
     takePhotoBtn.addEventListener('click', () => {
-      uploadInput.click();  // Simula o clique para abrir o seletor de arquivos
+      uploadInput.click(); // ativa a câmera frontal no celular
     });
 
-    uploadInput.addEventListener('change', (event) => {
-      const file = event.target.files[0];
-      if (file) {
-        const reader = new FileReader();
-        reader.onloadend = function () {
-          const imgElement = document.createElement('img');
-          imgElement.src = reader.result;
-          imgElement.alt = 'Foto enviada';
-          imgElement.style.width = '100%';
+    uploadInput.addEventListener('change', async (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
 
-          const photoElement = document.createElement('div');
-          photoElement.classList.add('photo');
-          photoElement.appendChild(imgElement);
+      const fileName = ${userId}-${Date.now()}.jpg;
+      const imageRef = ref(storage, fotos/${fileName});
+      await uploadBytes(imageRef, file);
+      uploadInput.value = '';
+      loadImages();
+    });
 
-          // Botão de exclusão (somente implementado visualmente, sem a parte de Firebase)
-          const deleteBtn = document.createElement('button');
-          deleteBtn.classList.add('delete-btn');
-          deleteBtn.innerText = 'X';
-          deleteBtn.onclick = () => {
-            photoElement.remove();
-          };
-          photoElement.appendChild(deleteBtn);
-
-          gallery.appendChild(photoElement);
-        };
-        reader.readAsDataURL(file);
+    async function loadImages() {
+      gallery.innerHTML = '';
+      const listRef = ref(storage, 'fotos');
+      const res = await listAll(listRef);
+      for (const item of res.items.reverse()) {
+        const url = await getDownloadURL(item);
+        const isOwner = item.name.startsWith(userId);
+        const div = document.createElement('div');
+        div.className = 'photo';
+        div.innerHTML = 
+          <img src="${url}" alt="Foto enviada" />
+          ${isOwner ? <button class="delete-btn" onclick="deletePhoto('${item.fullPath}')">×</button> : ''}
+        ;
+        gallery.appendChild(div);
       }
-    });
+    }
+
+    window.deletePhoto = async (path) => {
+      const photoRef = ref(storage, path);
+      await deleteObject(photoRef);
+      loadImages();
+    };
+
+    loadImages();
   </script>
 </body>
 </html>
