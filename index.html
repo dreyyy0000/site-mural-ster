@@ -1,101 +1,147 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Mural da Ster 💖</title>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@400;700&display=swap">
-  <style>
-    body {
-      margin: 0;
-      padding: 0;
-      font-family: 'Comfortaa', cursive;
-      background: linear-gradient(to bottom, #fce4ec, #f3e5f5);
-      color: #6a1b9a;
-      text-align: center;
-    }
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Mural da Ster 💜</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@400;700&display=swap">
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+        font-family: 'Comfortaa', cursive;
+        background: linear-gradient(to bottom, #fce4ec, #f3e5f5);
+        color: #6a1b9a;
+        text-align: center;
+      }
+      header {
+        background-color: #f8bbd0;
+        padding: 20px 0;
+        border-bottom: 4px solid #f48fb1;
+      }
+      header h1 {
+        margin: 0;
+        font-size: 2rem;
+        color: #880e4f;
+      }
+      header .florzinha {
+        font-size: 2rem;
+        margin: 0 10px;
+      }
+      main {
+        padding: 20px;
+      }
+      .upload-section {
+        margin-top: 20px;
+      }
+      .gallery {
+        margin-top: 30px;
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 15px;
+      }
+      .gallery-item {
+        position: relative;
+      }
+      .gallery-item img {
+        max-width: 200px;
+        border-radius: 10px;
+        border: 3px solid #f48fb1;
+      }
+      .delete-btn {
+        position: absolute;
+        top: 5px;
+        right: 5px;
+        background: #f06292;
+        border: none;
+        color: white;
+        padding: 5px 10px;
+        cursor: pointer;
+        border-radius: 5px;
+      }
+      footer {
+        margin-top: 40px;
+        font-size: 0.9rem;
+        color: #8e24aa;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <span class="florzinha">🌸</span>
+      <h1>Mural da Ster</h1>
+      <span class="florzinha">🌸</span>
+    </header>
 
-    header {
-      background-color: #f8bbd0;
-      padding: 20px 0;
-      border-bottom: 4px solid #f48fb1;
-    }
+    <main>
+      <h2>Envie sua foto 💕</h2>
+      <div class="upload-section">
+        <input type="file" accept="image/*" capture="environment" id="fileInput">
+        <button onclick="uploadPhoto()">Enviar</button>
+      </div>
+      <div class="gallery" id="gallery"></div>
+    </main>
 
-    header h1 {
-      margin: 0;
-      font-size: 2rem;
-      color: #880e4f;
-    }
+    <footer>
+      Criado com 💜 por dreyyy0000
+    </footer>
 
-    header .florzinha {
-      font-size: 2rem;
-      margin: 0 10px;
-    }
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
+      import { getStorage, ref, uploadBytes, getDownloadURL, listAll, deleteObject } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-storage.js";
 
-    main {
-      padding: 40px 20px;
-    }
+      const firebaseConfig = {
+        apiKey: "AIzaSyDdLgBl4rXhAl5RSQn8TSH0g3vYFxDLj6o",
+        authDomain: "muraldaster.firebaseapp.com",
+        projectId: "muraldaster",
+        storageBucket: "muraldaster.appspot.com",
+        messagingSenderId: "1055402128965",
+        appId: "1:1055402128965:web:cf251f4ac55a5eb3733600"
+      };
 
-    h2 {
-      font-size: 1.8rem;
-      color: #ab47bc;
-      margin-bottom: 10px;
-    }
+      const app = initializeApp(firebaseConfig);
+      const storage = getStorage(app);
 
-    p {
-      font-size: 1rem;
-      color: #6a1b9a;
-      max-width: 600px;
-      margin: 0 auto 30px;
-    }
+      const fileInput = document.getElementById("fileInput");
+      const gallery = document.getElementById("gallery");
 
-    .botao {
-      background-color: #ce93d8;
-      border: none;
-      padding: 12px 25px;
-      border-radius: 25px;
-      color: white;
-      font-size: 1rem;
-      cursor: pointer;
-      transition: background 0.3s ease;
-    }
+      async function uploadPhoto() {
+        const file = fileInput.files[0];
+        if (!file) return;
+        const id = `${Date.now()}-${file.name}`;
+        const storageRef = ref(storage, `fotos/${id}`);
+        await uploadBytes(storageRef, file);
+        loadGallery();
+      }
 
-    .botao:hover {
-      background-color: #ba68c8;
-    }
+      async function loadGallery() {
+        gallery.innerHTML = "";
+        const listRef = ref(storage, 'fotos');
+        const res = await listAll(listRef);
+        for (const itemRef of res.items) {
+          const url = await getDownloadURL(itemRef);
+          const div = document.createElement("div");
+          div.className = "gallery-item";
 
-    footer {
-      margin-top: 50px;
-      font-size: 0.9rem;
-      color: #8e24aa;
-    }
+          const img = document.createElement("img");
+          img.src = url;
+          div.appendChild(img);
 
-    .heart {
-      color: #ec407a;
-    }
-  </style>
-</head>
-<body>
-  <header>
-    <span class="florzinha">💖</span>
-    <h1>Mural da Ster</h1>
-    <span class="florzinha">💖</span>
-  </header>
+          const delBtn = document.createElement("button");
+          delBtn.className = "delete-btn";
+          delBtn.innerText = "Apagar";
+          delBtn.onclick = async () => {
+            await deleteObject(itemRef);
+            loadGallery();
+          };
+          div.appendChild(delBtn);
 
-  <main>
-    <h2>Site em construção...</h2>
-    <p>
-      Em breve você poderá enviar fotos lindas para o mural da Ster, com muito
-      carinho e segurança.
-    </p>
-    <p>
-      Fique à vontade para voltar aqui quando o mural estiver ativo!
-    </p>
-    <a href="index.html"><button class="botao">Voltar para o início</button></a>
-  </main>
+          gallery.appendChild(div);
+        }
+      }
 
-  <footer>
-    Criado com <span class="heart">❤️</span> por dreyyy0000
-  </footer>
-</body>
+      loadGallery();
+    </script>
+  </body>
 </html>
