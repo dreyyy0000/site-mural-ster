@@ -131,11 +131,11 @@
       const input = document.createElement('input');
       input.type = 'file';
       input.accept = 'image/*';
-      input.capture = 'user';
+      input.capture = 'environment';
       input.onchange = () => {
         const file = input.files[0];
         if (!file) return;
-        const filename = `photo_${Date.now()}.jpg`;
+        const filename = `${currentUserId}_${Date.now()}.jpg`;
         const ref = storage.ref('fotos/' + filename);
         ref.put(file).then(() => {
           ref.updateMetadata({ customMetadata: { userId: currentUserId } }).then(() => {
