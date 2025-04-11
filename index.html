@@ -88,6 +88,16 @@
       font-size: 0.85rem;
       color: #888;
     }
+
+    /* Media Query for responsiveness */
+    @media (max-width: 600px) {
+      #gallery {
+        grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+      }
+      header {
+        font-size: 1.8rem;
+      }
+    }
   </style>
 </head>
 <body>
@@ -135,7 +145,11 @@
 
     let currentUserId = null;
 
-    signInAnonymously(auth);
+    signInAnonymously(auth)
+      .catch((error) => {
+        console.error('Erro ao autenticar:', error.message);
+      });
+
     onAuthStateChanged(auth, (user) => {
       if (user) {
         currentUserId = user.uid;
@@ -154,6 +168,19 @@
       input.onchange = async () => {
         const file = input.files[0];
         if (!file || !currentUserId) return;
+
+        // Validate file type
+        if (!file.type.startsWith('image/')) {
+          alert('Por favor, selecione uma imagem.');
+          return;
+        }
+
+        // Validate file size (max 5MB)
+        if (file.size > 5 * 1024 * 1024) {
+          alert('A imagem é muito grande. O tamanho máximo permitido é 5MB.');
+          return;
+        }
+
         const fileName = `${currentUserId}_${Date.now()}.jpg`;
         const fileRef = ref(storage, 'fotos/' + fileName);
         await uploadBytes(fileRef, file);
@@ -188,6 +215,7 @@
         const del = document.createElement('button');
         del.className = 'delete-btn';
         del.innerText = '✕';
+        del.setAttribute('aria-label', 'Excluir foto');
         del.onclick = async () => {
           await deleteObject(ref);
           loadGallery();
