@@ -2,191 +2,100 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Mural da Ster 💜</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mural da Ster 💖</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@400;700&display=swap">
   <style>
     body {
       margin: 0;
-      font-family: 'Segoe UI', sans-serif;
-      background: linear-gradient(to bottom right, #ffe6f0, #f3d9ff);
-      color: #333;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
+      padding: 0;
+      font-family: 'Comfortaa', cursive;
+      background: linear-gradient(to bottom, #fce4ec, #f3e5f5);
+      color: #6a1b9a;
+      text-align: center;
     }
 
     header {
-      background: linear-gradient(90deg, #ffb3d1, #e0aaff);
-      color: white;
-      padding: 1.5rem;
-      font-size: 2.2rem;
-      font-weight: bold;
-      width: 100%;
-      text-align: center;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-      border-bottom-left-radius: 20px;
-      border-bottom-right-radius: 20px;
+      background-color: #f8bbd0;
+      padding: 20px 0;
+      border-bottom: 4px solid #f48fb1;
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 2rem;
+      color: #880e4f;
+    }
+
+    header .florzinha {
+      font-size: 2rem;
+      margin: 0 10px;
     }
 
     main {
-      padding: 1.5rem 1rem;
-      width: 100%;
+      padding: 40px 20px;
+    }
+
+    h2 {
+      font-size: 1.8rem;
+      color: #ab47bc;
+      margin-bottom: 10px;
+    }
+
+    p {
+      font-size: 1rem;
+      color: #6a1b9a;
       max-width: 600px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
+      margin: 0 auto 30px;
     }
 
-    #takePhotoBtn {
-      background-color: #d88dd1;
-      color: white;
+    .botao {
+      background-color: #ce93d8;
       border: none;
-      padding: 14px 28px;
-      font-size: 1.1rem;
-      border-radius: 30px;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-      cursor: pointer;
-      transition: background-color 0.3s ease;
-      margin-top: 2rem;
-    }
-
-    #takePhotoBtn:hover {
-      background-color: #c26cc3;
-    }
-
-    #gallery {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px;
-      margin-top: 2rem;
-      width: 100%;
-    }
-
-    .photo {
-      position: relative;
-      border-radius: 15px;
-      overflow: hidden;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.15);
-    }
-
-    .photo img {
-      width: 100%;
-      display: block;
-    }
-
-    .delete-btn {
-      position: absolute;
-      top: 6px;
-      right: 6px;
-      background: rgba(255, 102, 153, 0.85);
+      padding: 12px 25px;
+      border-radius: 25px;
       color: white;
-      border: none;
-      border-radius: 50%;
-      width: 30px;
-      height: 30px;
-      font-weight: bold;
-      font-size: 18px;
+      font-size: 1rem;
       cursor: pointer;
+      transition: background 0.3s ease;
+    }
+
+    .botao:hover {
+      background-color: #ba68c8;
     }
 
     footer {
-      margin: 2rem 0 1rem;
-      font-size: 0.85rem;
-      color: #888;
+      margin-top: 50px;
+      font-size: 0.9rem;
+      color: #8e24aa;
     }
 
-    input[type="file"] {
-      display: none;
-    }
-
-    .florzinha {
-      font-size: 1.5rem;
-      margin-top: 1rem;
-      animation: girar 4s linear infinite;
-    }
-
-    @keyframes girar {
-      from { transform: rotate(0deg); }
-      to { transform: rotate(360deg); }
+    .heart {
+      color: #ec407a;
     }
   </style>
 </head>
 <body>
-  <header>💜 Mural da Ster 💜</header>
+  <header>
+    <span class="florzinha">💖</span>
+    <h1>Mural da Ster</h1>
+    <span class="florzinha">💖</span>
+  </header>
 
   <main>
-    <div class="florzinha">🌸</div>
-    <button id="takePhotoBtn">Tirar foto agora</button>
-    <input type="file" accept="image/*" capture="user" id="uploadInput" />
-    <div id="gallery"></div>
+    <h2>Site em construção...</h2>
+    <p>
+      Em breve você poderá enviar fotos lindas para o mural da Ster, com muito
+      carinho e segurança.
+    </p>
+    <p>
+      Fique à vontade para voltar aqui quando o mural estiver ativo!
+    </p>
+    <a href="index.html"><button class="botao">Voltar para o início</button></a>
   </main>
 
-  <footer>Feito com carinho por drey 💜</footer>
-
-  <!-- Firebase -->
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
-    import { getStorage, ref, uploadBytes, getDownloadURL, listAll, deleteObject } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-storage.js";
-
-    const firebaseConfig = {
-      apiKey: "AIzaSyA94lQivhMSjYf44S-QrWmRVg6DynxPt68",
-      authDomain: "mural-ster.firebaseapp.com",
-      projectId: "mural-ster",
-      storageBucket: "mural-ster.appspot.com",
-      messagingSenderId: "585327762238",
-      appId: "1:585327762238:web:f48900f0a5942188c7ea6f",
-      measurementId: "G-YKHGYEH0R5"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const storage = getStorage(app);
-
-    const uploadInput = document.getElementById('uploadInput');
-    const gallery = document.getElementById('gallery');
-    const takePhotoBtn = document.getElementById('takePhotoBtn');
-
-    const userId = localStorage.getItem('userId') || crypto.randomUUID();
-    localStorage.setItem('userId', userId);
-
-    takePhotoBtn.addEventListener('click', () => {
-      uploadInput.click(); // ativa a câmera frontal no celular
-    });
-
-    uploadInput.addEventListener('change', async (e) => {
-      const file = e.target.files[0];
-      if (!file) return;
-
-      const fileName = ${userId}-${Date.now()}.jpg;
-      const imageRef = ref(storage, fotos/${fileName});
-      await uploadBytes(imageRef, file);
-      uploadInput.value = '';
-      loadImages();
-    });
-
-    async function loadImages() {
-      gallery.innerHTML = '';
-      const listRef = ref(storage, 'fotos');
-      const res = await listAll(listRef);
-      for (const item of res.items.reverse()) {
-        const url = await getDownloadURL(item);
-        const isOwner = item.name.startsWith(userId);
-        const div = document.createElement('div');
-        div.className = 'photo';
-        div.innerHTML = 
-          <img src="${url}" alt="Foto enviada" />
-          ${isOwner ? <button class="delete-btn" onclick="deletePhoto('${item.fullPath}')">×</button> : ''}
-        ;
-        gallery.appendChild(div);
-      }
-    }
-
-    window.deletePhoto = async (path) => {
-      const photoRef = ref(storage, path);
-      await deleteObject(photoRef);
-      loadImages();
-    };
-
-    loadImages();
-  </script>
+  <footer>
+    Criado com <span class="heart">❤️</span> por dreyyy0000
+  </footer>
 </body>
 </html>
