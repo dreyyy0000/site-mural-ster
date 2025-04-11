@@ -156,8 +156,8 @@
       const file = e.target.files[0];
       if (!file) return;
 
-      const fileName = ${userId}-${Date.now()}.jpg;
-      const imageRef = ref(storage, fotos/${fileName});
+      const fileName = `${userId}-${Date.now()}.jpg`;
+      const imageRef = ref(storage, `fotos/${fileName}`);
       await uploadBytes(imageRef, file);
       uploadInput.value = '';
       loadImages();
@@ -172,10 +172,10 @@
         const isOwner = item.name.startsWith(userId);
         const div = document.createElement('div');
         div.className = 'photo';
-        div.innerHTML = 
+        div.innerHTML = `
           <img src="${url}" alt="Foto enviada" />
-          ${isOwner ? <button class="delete-btn" onclick="deletePhoto('${item.fullPath}')">×</button> : ''}
-        ;
+          ${isOwner ? `<button class="delete-btn" onclick="deletePhoto('${item.fullPath}')">×</button>` : ''}
+        `;
         gallery.appendChild(div);
       }
     }
