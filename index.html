@@ -118,4 +118,51 @@
     <div class="florzinha">🌸</div>
     <button id="takePhotoBtn">Tirar Foto 💜</button>
     <input type="file" accept="image/*" capture="environment" id="uploadInput" />
-    <div id="
+    <div id="gallery"></div> <!-- Galeria de fotos -->
+
+  </main>
+
+  <footer>
+    <p>&copy; 2025 Mural da Ster. Todos os direitos reservados.</p>
+  </footer>
+
+  <script>
+    const takePhotoBtn = document.getElementById('takePhotoBtn');
+    const uploadInput = document.getElementById('uploadInput');
+    const gallery = document.getElementById('gallery');
+
+    takePhotoBtn.addEventListener('click', () => {
+      uploadInput.click();  // Simula o clique para abrir o seletor de arquivos
+    });
+
+    uploadInput.addEventListener('change', (event) => {
+      const file = event.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onloadend = function () {
+          const imgElement = document.createElement('img');
+          imgElement.src = reader.result;
+          imgElement.alt = 'Foto enviada';
+          imgElement.style.width = '100%';
+
+          const photoElement = document.createElement('div');
+          photoElement.classList.add('photo');
+          photoElement.appendChild(imgElement);
+
+          // Botão de exclusão (somente implementado visualmente, sem a parte de Firebase)
+          const deleteBtn = document.createElement('button');
+          deleteBtn.classList.add('delete-btn');
+          deleteBtn.innerText = 'X';
+          deleteBtn.onclick = () => {
+            photoElement.remove();
+          };
+          photoElement.appendChild(deleteBtn);
+
+          gallery.appendChild(photoElement);
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+  </script>
+</body>
+</html>
