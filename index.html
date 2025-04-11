@@ -6,127 +6,98 @@
   <title>Mural da Ster 💜</title>
   <style>
     body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(to bottom, #f8f3ff, #ebdcff);
       margin: 0;
-      font-family: 'Segoe UI', sans-serif;
-      background: linear-gradient(to bottom right, #ffe6f0, #f3d9ff);
+      padding: 0;
+      text-align: center;
       color: #333;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
     }
-
     header {
-      background: linear-gradient(90deg, #ffb3d1, #e0aaff);
-      color: white;
+      background: linear-gradient(90deg, #d8b4f8, #b388eb);
       padding: 1.5rem;
       font-size: 2.2rem;
       font-weight: bold;
-      width: 100%;
-      text-align: center;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-      border-bottom-left-radius: 20px;
-      border-bottom-right-radius: 20px;
-    }
-
-    main {
-      padding: 1.5rem 1rem;
-      width: 100%;
-      max-width: 600px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-    }
-
-    #takePhotoBtn {
-      background-color: #d88dd1;
       color: white;
-      border: none;
-      padding: 14px 28px;
+      text-shadow: 1px 1px 2px #9147ff;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    #uploadBtn {
+      margin: 2rem;
+      padding: 14px 26px;
       font-size: 1.1rem;
-      border-radius: 30px;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+      background-color: #9147ff;
+      border: none;
+      color: white;
+      border-radius: 12px;
       cursor: pointer;
-      transition: background-color 0.3s ease;
-      margin-top: 2rem;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      transition: background 0.3s;
     }
-
-    #takePhotoBtn:hover {
-      background-color: #c26cc3;
+    #uploadBtn:hover {
+      background-color: #772ce8;
     }
-
-    #gallery {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px;
-      margin-top: 2rem;
-      width: 100%;
+    #photoContainer {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 16px;
+      padding: 1rem;
     }
-
-    .photo {
-      position: relative;
+    .photo-card {
+      background: white;
       border-radius: 15px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.08);
       overflow: hidden;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+      width: 45%;
+      position: relative;
     }
-
-    .photo img {
+    .photo-card img {
       width: 100%;
+      height: auto;
       display: block;
     }
-
     .delete-btn {
       position: absolute;
       top: 6px;
       right: 6px;
-      background: rgba(255, 102, 153, 0.85);
-      color: white;
+      background: rgba(255, 0, 0, 0.7);
       border: none;
       border-radius: 50%;
-      width: 30px;
-      height: 30px;
-      font-weight: bold;
-      font-size: 18px;
+      padding: 6px 10px;
+      color: white;
       cursor: pointer;
+      font-size: 1rem;
     }
-
     footer {
-      margin: 2rem 0 1rem;
-      font-size: 0.85rem;
-      color: #888;
-    }
-
-    input[type="file"] {
-      display: none;
-    }
-
-    .florzinha {
-      font-size: 1.5rem;
-      margin-top: 1rem;
-      animation: girar 4s linear infinite;
-    }
-
-    @keyframes girar {
-      from { transform: rotate(0deg); }
-      to { transform: rotate(360deg); }
+      margin-top: 2rem;
+      font-size: 0.8rem;
+      color: #666;
+      padding-bottom: 1rem;
     }
   </style>
 </head>
 <body>
   <header>💜 Mural da Ster 💜</header>
 
-  <main>
-    <div class="florzinha">🌸</div>
-    <button id="takePhotoBtn">Tirar foto agora</button>
-    <input type="file" accept="image/*" capture="user" id="uploadInput" />
-    <div id="gallery"></div>
-  </main>
+  <input type="file" accept="image/*" capture="environment" id="uploadInput" style="display: none;" />
+  <button id="uploadBtn">📷 Tirar Foto Agora</button>
 
-  <footer>Feito com carinho por drey 💜</footer>
+  <div id="photoContainer"></div>
 
-  <!-- Firebase -->
+  <footer>Feito com amor 💜 por drey</footer>
+
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js"></script>
+
   <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
-    import { getStorage, ref, uploadBytes, getDownloadURL, listAll, deleteObject } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-storage.js";
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+    import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
+    import { getStorage, ref as sRef, uploadBytes, getDownloadURL, deleteObject } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-storage.js";
+    import { getDatabase, ref, push, onValue, remove } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyA94lQivhMSjYf44S-QrWmRVg6DynxPt68",
@@ -139,54 +110,77 @@
     };
 
     const app = initializeApp(firebaseConfig);
-    const storage = getStorage(app);
+    const auth = getAuth();
+    const storage = getStorage();
+    const db = getDatabase();
 
-    const uploadInput = document.getElementById('uploadInput');
-    const gallery = document.getElementById('gallery');
-    const takePhotoBtn = document.getElementById('takePhotoBtn');
+    let userId = null;
 
-    const userId = localStorage.getItem('userId') || crypto.randomUUID();
-    localStorage.setItem('userId', userId);
+    signInAnonymously(auth).catch(console.error);
 
-    takePhotoBtn.addEventListener('click', () => {
-      uploadInput.click(); // ativa a câmera frontal no celular
+    onAuthStateChanged(auth, user => {
+      if (user) {
+        userId = user.uid;
+        carregarFotos();
+      }
     });
 
-    uploadInput.addEventListener('change', async (e) => {
+    const uploadInput = document.getElementById("uploadInput");
+    const uploadBtn = document.getElementById("uploadBtn");
+    const photoContainer = document.getElementById("photoContainer");
+
+    uploadBtn.addEventListener("click", () => uploadInput.click());
+
+    uploadInput.addEventListener("change", async (e) => {
       const file = e.target.files[0];
       if (!file) return;
 
-      const fileName = ${userId}-${Date.now()}.jpg;
-      const imageRef = ref(storage, fotos/${fileName});
-      await uploadBytes(imageRef, file);
-      uploadInput.value = '';
-      loadImages();
+      const storageRef = sRef(storage, `fotos/${Date.now()}-${file.name}`);
+      await uploadBytes(storageRef, file);
+      const url = await getDownloadURL(storageRef);
+
+      const fotoRef = ref(db, "fotos");
+      push(fotoRef, {
+        url,
+        user: userId,
+        nome: file.name,
+        path: storageRef.fullPath
+      });
+
+      uploadInput.value = "";
     });
 
-    async function loadImages() {
-      gallery.innerHTML = '';
-      const listRef = ref(storage, 'fotos');
-      const res = await listAll(listRef);
-      for (const item of res.items.reverse()) {
-        const url = await getDownloadURL(item);
-        const isOwner = item.name.startsWith(userId);
-        const div = document.createElement('div');
-        div.className = 'photo';
-        div.innerHTML = 
-          <img src="${url}" alt="Foto enviada" />
-          ${isOwner ? <button class="delete-btn" onclick="deletePhoto('${item.fullPath}')">×</button> : ''}
-        ;
-        gallery.appendChild(div);
-      }
+    function carregarFotos() {
+      const fotoRef = ref(db, "fotos");
+      onValue(fotoRef, (snapshot) => {
+        photoContainer.innerHTML = "";
+        snapshot.forEach((child) => {
+          const data = child.val();
+          const key = child.key;
+
+          const card = document.createElement("div");
+          card.className = "photo-card";
+
+          const img = document.createElement("img");
+          img.src = data.url;
+
+          card.appendChild(img);
+
+          if (data.user === userId) {
+            const del = document.createElement("button");
+            del.className = "delete-btn";
+            del.innerText = "×";
+            del.onclick = async () => {
+              await deleteObject(sRef(storage, data.path));
+              await remove(ref(db, "fotos/" + key));
+            };
+            card.appendChild(del);
+          }
+
+          photoContainer.appendChild(card);
+        });
+      });
     }
-
-    window.deletePhoto = async (path) => {
-      const photoRef = ref(storage, path);
-      await deleteObject(photoRef);
-      loadImages();
-    };
-
-    loadImages();
   </script>
 </body>
 </html>
