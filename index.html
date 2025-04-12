@@ -1,172 +1,171 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Mural da Ster 🌸</title>
-    <style>
-      body {
-        font-family: sans-serif;
-        background: #fff0f5;
-        text-align: center;
-        margin: 0;
-        padding: 1rem;
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Mural da Ster 🌸</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      background: #fff0f5;
+      text-align: center;
+      padding: 1rem;
+    }
+
+    h1 {
+      color: #d63384;
+    }
+
+    #uploadLabel {
+      display: inline-block;
+      margin: 1rem 0;
+      padding: 10px 20px;
+      background-color: #ff69b4;
+      color: white;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    #fotoInput {
+      display: none;
+    }
+
+    .foto {
+      position: relative;
+      display: inline-block;
+      margin: 10px;
+    }
+
+    .foto img {
+      max-width: 100%;
+      border-radius: 10px;
+      border: 2px solid #ffc0cb;
+    }
+
+    .delete-btn {
+      position: absolute;
+      top: 4px;
+      right: 4px;
+      background: white;
+      border: none;
+      border-radius: 50%;
+      color: red;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    #galeria {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 1rem;
+    }
+  </style>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import {
+      getStorage, ref, uploadBytes, getDownloadURL, deleteObject
+    } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
+    import {
+      getFirestore, collection, addDoc, onSnapshot, deleteDoc, doc
+    } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import {
+      getAuth, signInAnonymously, onAuthStateChanged
+    } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+
+    const firebaseConfig = {
+      apiKey: "SUA_API_KEY",
+      authDomain: "SEU_AUTH_DOMAIN",
+      projectId: "SEU_PROJECT_ID",
+      storageBucket: "SEU_STORAGE_BUCKET",
+      messagingSenderId: "SEU_MESSAGING_ID",
+      appId: "SEU_APP_ID"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const storage = getStorage(app);
+    const auth = getAuth(app);
+
+    let userId = null;
+    const input = document.getElementById("fotoInput");
+    const galeria = document.getElementById("galeria");
+
+    // Login anônimo
+    signInAnonymously(auth);
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        userId = user.uid;
+        input.disabled = false; // libera input
       }
+    });
 
-      h1 {
-        color: #d63384;
-      }
+    // Upload
+    input.addEventListener("change", async (e) => {
+      const file = e.target.files[0];
+      if (!file || !userId) return;
 
-      .foto {
-        position: relative;
-        display: inline-block;
-        margin: 10px;
-      }
+      try {
+        const nomeArquivo = `${Date.now()}_${file.name}`;
+        const storageRef = ref(storage, "fotos/" + nomeArquivo);
+        await uploadBytes(storageRef, file);
+        const url = await getDownloadURL(storageRef);
 
-      .foto img {
-        max-width: 100%;
-        border-radius: 10px;
-        border: 2px solid #ffc0cb;
-      }
-
-      .delete-btn {
-        position: absolute;
-        top: 4px;
-        right: 4px;
-        background: white;
-        border: none;
-        border-radius: 50%;
-        color: red;
-        font-weight: bold;
-        cursor: pointer;
-      }
-
-      #galeria {
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: center;
-        gap: 1rem;
-      }
-    </style>
-
-    <script type="module">
-      import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-      import {
-        getStorage,
-        ref,
-        uploadBytes,
-        getDownloadURL,
-        deleteObject
-      } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
-      import {
-        getFirestore,
-        collection,
-        addDoc,
-        onSnapshot,
-        deleteDoc,
-        doc
-      } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-      import {
-        getAuth,
-        signInAnonymously,
-        onAuthStateChanged
-      } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-
-      const firebaseConfig = {
-        apiKey: "SUA_API_KEY",
-        authDomain: "SEU_AUTH_DOMAIN",
-        projectId: "SEU_PROJECT_ID",
-        storageBucket: "SEU_STORAGE_BUCKET",
-        messagingSenderId: "SEU_MESSAGING_ID",
-        appId: "SEU_APP_ID"
-      };
-
-      const app = initializeApp(firebaseConfig);
-      const db = getFirestore(app);
-      const storage = getStorage(app);
-      const auth = getAuth(app);
-
-      let userId = null;
-      const input = document.getElementById("fotoInput");
-      const galeria = document.getElementById("galeria");
-
-      // Login anônimo
-      signInAnonymously(auth);
-      onAuthStateChanged(auth, (user) => {
-        if (user) {
-          userId = user.uid;
-          input.disabled = false;
-        }
-      });
-
-      // Envio da imagem
-      input.addEventListener("change", async (e) => {
-        const file = e.target.files[0];
-        if (!file) return; // Se nada foi escolhido, sai
-
-        if (!userId) {
-          alert("Usuário ainda não autenticado. Tente novamente.");
-          return;
-        }
-
-        try {
-          const nomeArquivo = `${Date.now()}_${file.name}`;
-          const storageRef = ref(storage, "fotos/" + nomeArquivo);
-          await uploadBytes(storageRef, file);
-          const url = await getDownloadURL(storageRef);
-
-          await addDoc(collection(db, "fotos"), {
-            url,
-            userId,
-            storagePath: "fotos/" + nomeArquivo,
-            createdAt: Date.now()
-          });
-
-          input.value = ""; // limpa input
-        } catch (err) {
-          console.error("Erro ao enviar foto:", err);
-          alert("Erro ao enviar a foto.");
-        }
-      });
-
-      // Mostra fotos em tempo real
-      function criarFoto(foto) {
-        const div = document.createElement("div");
-        div.className = "foto";
-
-        const img = document.createElement("img");
-        img.src = foto.url;
-        img.alt = "Foto enviada";
-
-        div.appendChild(img);
-
-        if (foto.userId === userId) {
-          const btn = document.createElement("button");
-          btn.textContent = "×";
-          btn.className = "delete-btn";
-          btn.onclick = async () => {
-            await deleteDoc(doc(db, "fotos", foto.id));
-            await deleteObject(ref(storage, foto.storagePath));
-          };
-          div.appendChild(btn);
-        }
-
-        return div;
-      }
-
-      onSnapshot(collection(db, "fotos"), (snapshot) => {
-        galeria.innerHTML = "";
-        snapshot.docs.forEach((doc) => {
-          const foto = { id: doc.id, ...doc.data() };
-          galeria.appendChild(criarFoto(foto));
+        await addDoc(collection(db, "fotos"), {
+          url,
+          userId,
+          storagePath: "fotos/" + nomeArquivo,
+          createdAt: Date.now()
         });
-      });
-    </script>
-  </head>
 
-  <body>
-    <h1>🌸 Mural da Ster 🌸</h1>
-    <input type="file" id="fotoInput" accept="image/*" capture="environment" disabled />
-    <div id="galeria"></div>
-  </body>
+        input.value = "";
+      } catch (err) {
+        alert("Erro ao enviar.");
+        console.error(err);
+      }
+    });
+
+    // Galeria
+    function criarFoto(foto) {
+      const div = document.createElement("div");
+      div.className = "foto";
+
+      const img = document.createElement("img");
+      img.src = foto.url;
+      div.appendChild(img);
+
+      if (foto.userId === userId) {
+        const btn = document.createElement("button");
+        btn.textContent = "×";
+        btn.className = "delete-btn";
+        btn.onclick = async () => {
+          await deleteDoc(doc(db, "fotos", foto.id));
+          await deleteObject(ref(storage, foto.storagePath));
+        };
+        div.appendChild(btn);
+      }
+
+      return div;
+    }
+
+    onSnapshot(collection(db, "fotos"), (snapshot) => {
+      galeria.innerHTML = "";
+      snapshot.docs.forEach((doc) => {
+        const foto = { id: doc.id, ...doc.data() };
+        galeria.appendChild(criarFoto(foto));
+      });
+    });
+  </script>
+</head>
+
+<body>
+  <h1>🌸 Mural da Ster 🌸</h1>
+
+  <!-- Label estilizado para input -->
+  <label for="fotoInput" id="uploadLabel">📷 Tirar ou Escolher Foto</label>
+  <input type="file" id="fotoInput" accept="image/*" capture="environment" disabled />
+
+  <div id="galeria"></div>
+</body>
 </html>
