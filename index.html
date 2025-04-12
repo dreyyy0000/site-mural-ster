@@ -12,23 +12,19 @@
         margin: 0;
         padding: 1rem;
       }
-
       h1 {
         color: #d63384;
       }
-
       .foto {
         position: relative;
         display: inline-block;
         margin: 10px;
       }
-
       .foto img {
         max-width: 100%;
         border-radius: 10px;
         border: 2px solid #ffc0cb;
       }
-
       .delete-btn {
         position: absolute;
         top: 4px;
@@ -40,7 +36,6 @@
         font-weight: bold;
         cursor: pointer;
       }
-
       #galeria {
         display: flex;
         flex-wrap: wrap;
@@ -48,8 +43,9 @@
         gap: 1rem;
       }
     </style>
+
     <script type="module">
-      // ✅ Importa Firebase
+      // Firebase imports
       import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
       import {
         getStorage,
@@ -62,7 +58,6 @@
         getFirestore,
         collection,
         addDoc,
-        getDocs,
         onSnapshot,
         deleteDoc,
         doc,
@@ -73,7 +68,7 @@
         onAuthStateChanged,
       } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
-      // ✅ Config do seu projeto Firebase
+      // Firebase config (coloque seus dados)
       const firebaseConfig = {
         apiKey: "SUA_API_KEY",
         authDomain: "SEU_AUTH_DOMAIN",
@@ -89,35 +84,49 @@
       const auth = getAuth(app);
       let userId = null;
 
+      const input = document.getElementById("fotoInput");
+      const galeria = document.getElementById("galeria");
+
+      // 🔐 Login anônimo e espera antes de permitir upload
       signInAnonymously(auth);
       onAuthStateChanged(auth, (user) => {
         if (user) {
           userId = user.uid;
+
+          // Só ativa o input depois que estiver autenticado
+          input.disabled = false;
         }
       });
 
-      const input = document.getElementById("fotoInput");
-      const galeria = document.getElementById("galeria");
-
+      // 🖼️ Envio da foto
       input.addEventListener("change", async (e) => {
         const file = e.target.files[0];
-        if (!file || !userId) return;
+        if (!file || !userId) {
+          alert("Erro ao carregar usuário ou arquivo.");
+          return;
+        }
 
-        const nomeArquivo = `${Date.now()}_${file.name}`;
-        const storageRef = ref(storage, "fotos/" + nomeArquivo);
-        await uploadBytes(storageRef, file);
-        const url = await getDownloadURL(storageRef);
+        try {
+          const nomeArquivo = `${Date.now()}_${file.name}`;
+          const storageRef = ref(storage, "fotos/" + nomeArquivo);
+          await uploadBytes(storageRef, file);
+          const url = await getDownloadURL(storageRef);
 
-        await addDoc(collection(db, "fotos"), {
-          url,
-          userId,
-          storagePath: "fotos/" + nomeArquivo,
-          createdAt: Date.now()
-        });
+          await addDoc(collection(db, "fotos"), {
+            url,
+            userId,
+            storagePath: "fotos/" + nomeArquivo,
+            createdAt: Date.now()
+          });
 
-        input.value = "";
+          input.value = "";
+        } catch (err) {
+          console.error("Erro ao enviar foto:", err);
+          alert("Erro ao enviar foto.");
+        }
       });
 
+      // 🖼️ Exibição em tempo real
       function criarFoto(foto) {
         const div = document.createElement("div");
         div.className = "foto";
@@ -125,7 +134,6 @@
         const img = document.createElement("img");
         img.src = foto.url;
         img.alt = "Foto enviada";
-
         div.appendChild(img);
 
         if (foto.userId === userId) {
@@ -142,7 +150,6 @@
         return div;
       }
 
-      // Atualiza a galeria em tempo real
       onSnapshot(collection(db, "fotos"), (snapshot) => {
         galeria.innerHTML = "";
         snapshot.docs.forEach((doc) => {
@@ -152,9 +159,10 @@
       });
     </script>
   </head>
+
   <body>
     <h1>🌸 Mural da Ster 🌸</h1>
-    <input type="file" id="fotoInput" accept="image/*" capture="environment" />
+    <input type="file" id="fotoInput" accept="image/*" capture="environment" disabled />
     <div id="galeria"></div>
   </body>
 </html>
